@@ -1,0 +1,16 @@
+[project]
+name = "redline"
+version = "0.1.0"
+description = "Turn PDFs into RSVP speed-reading videos (one word at a time, red fixation letter)."
+requires-python = ">=3.10"
+license = "MIT"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["redline", "app"]
+
+[tool.ruff]
+line-length = 100
