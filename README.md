@@ -50,8 +50,8 @@ PDF ──► extract (pypdf) ──► clean ──► tokenize ──► sched
 - **Fast encoding.** Each distinct (word, speed) frame is drawn once and reused, then ffmpeg's
   concat demuxer holds it for the right number of frames. Frame counts are rounded on the
   running total, so a 10-minute video stays in sync to within one frame. The 15-page
-  *Attention Is All You Need* paper (4.7k words, a 12.5-minute video) renders in about 20 s on
-  a laptop.
+  *Attention Is All You Need* paper (4.7k words, a 12.5-minute video at 300 → 600 wpm)
+  renders in about 20 s on a laptop.
 
 ## Run it locally
 
