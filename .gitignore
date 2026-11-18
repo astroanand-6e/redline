@@ -6,3 +6,4 @@ __pycache__/
 .ruff_cache/
 .gradio/
 demo/*.mp4
+demo/linkedin-post.md
