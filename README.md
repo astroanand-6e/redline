@@ -119,7 +119,7 @@ The 19 JavaScript tests hold the browser engine to the Python one. `tests/web/ma
 records the Python answers (fixation letters, tokens and pauses, wpm ramps, frame counts,
 layouts, PDF cleanup) and the browser engine must match them exactly. A pytest check fails if
 the fixtures go stale. In a real browser, the full *Attention Is All You Need* paper reads in
-about 0.2 s and exports a frame-exact 12.6-minute MP4 in about 20 s.
+about 0.2 s and exports a frame-exact 12.5-minute MP4 in about 20 s.
 
 ## Limits
 
