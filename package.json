@@ -1,0 +1,13 @@
+{
+  "name": "redline-web",
+  "private": true,
+  "type": "module",
+  "description": "Browser version of Redline: PDF to RSVP speed-reading video (static site in web/).",
+  "scripts": {
+    "test": "node --test tests/web/",
+    "serve": "python3 -m http.server 8000 -d web"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

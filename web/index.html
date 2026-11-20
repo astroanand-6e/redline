@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redline · PDF to speed-reading video</title>
+  <meta name="description" content="Turn any PDF into an RSVP speed-reading video, in your browser. One word at a time, with the red fixation letter pinned in place.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='%23de444c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <span class="brand"><span class="dot" aria-hidden="true"></span>Redline</span>
+    <a class="top-link" href="https://github.com/astroanand-6e/redline" target="_blank" rel="noopener">Source on GitHub</a>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h1>Read any PDF one word at a time.</h1>
+      <p>Each word flashes in the same spot with its fixation letter in red, so your eyes never move (RSVP).
+        Drop in a paper, set a speed ramp, read it here or download an MP4.
+        <strong>Everything runs in your browser; your PDF is never uploaded.</strong></p>
+    </section>
+
+    <div class="layout">
+      <section class="reader" aria-label="Reader">
+        <div class="stage" id="stage" data-format="16:9">
+          <canvas id="screen" width="1280" height="720" role="img" aria-label="Speed-reading preview, one word at a time. The full text is in the Text to read box."></canvas>
+        </div>
+        <div class="transport">
+          <button id="play" class="btn" type="button" aria-label="Play">
+            <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+            <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
+          </button>
+          <button id="restart" class="btn" type="button" aria-label="Back to the start">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h2v11H3zM14 2.5v11L6 8z"/></svg>
+          </button>
+          <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Position in the text (word)">
+          <span id="clock" class="clock" aria-live="off">0:00 / 0:00</span>
+        </div>
+        <p class="hint">Space plays and pauses. ← and → jump 10 words.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-source">
+        <h2 id="h-source"><span class="step">1</span>Source</h2>
+        <label class="drop" id="drop">
+          <input id="file" type="file" accept="application/pdf,.pdf">
+          <span class="drop-main"><strong>Drop a PDF here</strong> or <span class="link">choose a file</span></span>
+          <span id="file-name" class="drop-file"></span>
+        </label>
+        <div class="samples">
+          <span class="muted">Or try</span>
+          <button type="button" class="chip" data-sample="attention">Attention Is All You Need (abstract)</button>
+          <button type="button" class="chip" data-sample="gettysburg">Gettysburg Address (PDF)</button>
+        </div>
+        <details class="pdf-options">
+          <summary>PDF options</summary>
+          <div class="row">
+            <label>From page <input id="first-page" type="number" min="1" step="1" value="1" inputmode="numeric"></label>
+            <label>To page <input id="last-page" type="number" min="1" step="1" placeholder="last" inputmode="numeric"></label>
+          </div>
+          <label class="check"><input id="skip-refs" type="checkbox" checked> Skip the references section</label>
+          <label class="check"><input id="strip-cites" type="checkbox" checked> Remove citations, links and emails</label>
+          <button id="reextract" type="button" class="btn small">Re-read the PDF with these settings</button>
+        </details>
+        <p id="source-status" class="status" role="status"></p>
+        <label class="field-label" for="text">Text to read <span class="muted">(edit it, or paste your own)</span></label>
+        <textarea id="text" rows="9" spellcheck="false" maxlength="300000"></textarea>
+        <p id="stats" class="stats" role="status"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-look">
+        <h2 id="h-look"><span class="step">2</span>Speed and look</h2>
+        <div class="slider">
+          <label for="start-wpm">Start speed</label><output id="start-out" for="start-wpm">300 wpm</output>
+          <input id="start-wpm" type="range" min="120" max="1200" step="30" value="300">
+        </div>
+        <div class="slider">
+          <label for="end-wpm">End speed</label><output id="end-out" for="end-wpm">600 wpm</output>
+          <input id="end-wpm" type="range" min="120" max="1200" step="30" value="600">
+        </div>
+        <fieldset class="segmented">
+          <legend>Format</legend>
+          <label><input type="radio" name="format" value="16:9" checked><span>16:9</span></label>
+          <label><input type="radio" name="format" value="1:1"><span>1:1</span></label>
+          <label><input type="radio" name="format" value="9:16"><span>9:16</span></label>
+        </fieldset>
+        <fieldset class="segmented">
+          <legend>Theme</legend>
+          <label><input type="radio" name="theme" value="Dark" checked><span>Dark</span></label>
+          <label><input type="radio" name="theme" value="Light"><span>Light</span></label>
+        </fieldset>
+        <label class="check"><input id="show-wpm" type="checkbox" checked> Show the wpm counter</label>
+      </section>
+
+      <section class="panel" aria-labelledby="h-video">
+        <h2 id="h-video"><span class="step">3</span>Video</h2>
+        <div class="row">
+          <button id="export" type="button" class="btn primary" disabled>Download MP4</button>
+          <button id="cancel" type="button" class="btn" hidden>Cancel</button>
+        </div>
+        <progress id="progress" max="1" value="0" aria-label="Export progress" hidden></progress>
+        <p id="export-status" class="status" role="status"></p>
+        <video id="result" controls playsinline hidden></video>
+        <a id="save" class="save" hidden></a>
+      </section>
+    </div>
+
+    <details class="how">
+      <summary>How it works</summary>
+      <p><strong>RSVP (rapid serial visual presentation)</strong> shows one word at a time in a fixed spot,
+        so your eyes skip the jumps they normally make between words.</p>
+      <ul>
+        <li><strong>Red fixation letter.</strong> Each word's optimal recognition point, slightly left of
+          centre, is drawn in red and pinned to the tick marks.</li>
+        <li><strong>Natural pacing.</strong> Sentence ends get 2× time, commas 1.5×, paragraph breaks 2.5×.
+          Long words and numbers get a little extra.</li>
+        <li><strong>PDF cleanup.</strong> Running headers and footers and page numbers are removed, words split
+          across lines are rejoined, and you can drop the references section, citations like [12], links
+          and emails.</li>
+        <li><strong>Speed ramp.</strong> Start slow and finish fast (say 300 → 900 wpm); the counter in the
+          corner shows the current speed.</li>
+        <li><strong>In your browser.</strong> pdf.js reads the PDF, a canvas draws each frame, and the
+          browser's own H.264 encoder (WebCodecs) writes the MP4. The same engine also exists as a Python
+          command-line tool.</li>
+      </ul>
+      <p>Comprehension drops at very high speeds, so this works best for skimming, review and practice.</p>
+    </details>
+  </main>
+
+  <footer>
+    Built by Anand Thakkar ·
+    <a href="https://github.com/astroanand-6e/redline" target="_blank" rel="noopener">Source on GitHub</a> ·
+    Font: STIX Two Text (OFL)
+  </footer>
+</body>
+</html>

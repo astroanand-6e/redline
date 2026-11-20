@@ -18,7 +18,16 @@ short_description: Turn any PDF into an RSVP speed-reading video
 letter in red, pinned to the same spot, so your eyes never move. Upload a paper, pick a speed
 ramp (say 300 → 900 wpm), and download an MP4 in landscape, square or vertical format.
 
+**[Try it in your browser](https://huggingface.co/spaces/astroanand/redline)**. Everything runs
+client-side, so your PDF is never uploaded.
+
 ![Redline preview](demo/preview.gif)
+
+Redline comes in two builds that share one engine, checked against each other by tests:
+
+- **Browser** (`web/`, the live demo): pdf.js reads the PDF, a canvas draws the frames and the
+  browser's H.264 encoder (WebCodecs) writes the MP4. It is a static site with no server.
+- **Python** (`redline/`): a command-line tool and a Gradio app, using pypdf, Pillow and ffmpeg.
 
 ## Why
 
@@ -55,6 +64,14 @@ PDF ──► extract (pypdf) ──► clean ──► tokenize ──► sched
 
 ## Run it locally
 
+The browser build is plain static files:
+
+```bash
+python3 -m http.server 8000 -d web   # then open http://localhost:8000
+```
+
+The Python build:
+
 ```bash
 uv venv && uv pip install -r requirements-dev.txt
 .venv/bin/python app.py            # Gradio UI on http://127.0.0.1:7860
@@ -79,16 +96,30 @@ python -m redline book.pdf -o ch1.mp4 --pages 12-30 --keep-references
 | `redline/style.py`, `render.py` | Frame geometry and Pillow drawing |
 | `redline/video.py` | ffmpeg encoding with progress |
 | `redline/pipeline.py` | Text in, MP4 out |
-| `app.py` | Gradio app (Hugging Face Spaces entry point) |
+| `app.py` | Gradio app (runs on a Gradio Space; needs a paid Hugging Face plan) |
+| `web/js/engine/` | The same engine in JavaScript: cleanup, tokens, ORP, timing, layout |
+| `web/js/pdftext.js` | pdf.js text extraction, rebuilt into lines |
+| `web/js/render.js`, `player.js` | Canvas frame drawing and live playback |
+| `web/js/export.js` | WebCodecs H.264 encoding into MP4 (mp4-muxer) |
+| `web/js/app.js`, `web/index.html` | The static page (the Hugging Face Space) |
+| `scripts/deploy_space.sh` | Publish `web/` as a static Space |
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest --cov
+.venv/bin/python -m pytest --cov   # Python engine, CLI and Gradio app
+npm test                           # browser engine (node --test, no dependencies)
 ```
 
-The 105 tests cover ORP placement (measured from red pixels in rendered frames), cleanup
-heuristics, timing drift, every output format, the CLI, the Gradio handlers and the server-side limits (speed range, text size, video length, PDF parse timeout). Coverage is 96%.
+The 107 Python tests cover ORP placement (measured from red pixels in rendered frames), cleanup
+heuristics, timing drift, every output format, the CLI, the Gradio handlers and the server-side
+limits (speed range, text size, video length, PDF parse timeout). Coverage is 96%.
+
+The 19 JavaScript tests hold the browser engine to the Python one. `tests/web/make_fixtures.py`
+records the Python answers (fixation letters, tokens and pauses, wpm ramps, frame counts,
+layouts, PDF cleanup) and the browser engine must match them exactly. A pytest check fails if
+the fixtures go stale. In a real browser, the full *Attention Is All You Need* paper reads in
+about 0.2 s and exports a frame-exact 12.6-minute MP4 in about 20 s.
 
 ## Limits
 
@@ -100,4 +131,6 @@ heuristics, timing drift, every output format, the CLI, the Gradio handlers and 
 
 The frame style follows the classic RSVP speed-reading look: black background, serif word,
 red fixation letter, guide ticks. Font: [STIX Two Text](https://github.com/stipub/stixfonts)
-(SIL OFL 1.1). Sample PDF: the Gettysburg Address (public domain).
+(SIL OFL 1.1). Sample PDF: the Gettysburg Address (public domain). The browser build vendors
+[pdf.js](https://github.com/mozilla/pdf.js) 6.5.438 (Apache-2.0) and
+[mp4-muxer](https://github.com/Vanilagy/mp4-muxer) 5.2.2 (MIT) in `web/vendor/`, with their licences.
